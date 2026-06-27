@@ -14,7 +14,7 @@ export const generateToken = (userId, res) => {
         return token;
     }
     else {
-        console.log("Error in jwt key");
+        throw new Error("Error in jwt key");
         return res.status(500).json({ message: "Internal server error" });
     }
 };

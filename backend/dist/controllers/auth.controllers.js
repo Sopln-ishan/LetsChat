@@ -7,6 +7,8 @@ export const signup = async (req, res) => {
         if (!fullName || !email || !password) {
             res.status(400).json({ message: "All fields are required" });
         }
+        const name = fullName.trim();
+        const normalizedEmail = email.trim().toLowerCase();
         if (password.length < 6) {
             res
                 .status(400)
@@ -24,8 +26,8 @@ export const signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
         const newUser = new User({ fullName, email, password: hashedPassword });
         if (newUser) {
-            generateToken(newUser._id, res);
-            await newUser.save();
+            const savedUser = await newUser.save();
+            generateToken(savedUser._id, res);
             res.status(201).json({
                 _id: newUser._id,
                 fullName: newUser.fullName,
