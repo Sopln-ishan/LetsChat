@@ -19,6 +19,5 @@ export const generateToken = (userId: Types.ObjectId, res: Response) => {
     return token;
   } else {
     throw new Error("Error in jwt key");
-    return res.status(500).json({ message: "Internal server error" });
   }
 };

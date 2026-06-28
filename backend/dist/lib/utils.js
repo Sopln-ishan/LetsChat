@@ -15,7 +15,6 @@ export const generateToken = (userId, res) => {
     }
     else {
         throw new Error("Error in jwt key");
-        return res.status(500).json({ message: "Internal server error" });
     }
 };
 //# sourceMappingURL=utils.js.map
