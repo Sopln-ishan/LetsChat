@@ -1,13 +1,14 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
+import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
     try {
         if (!fullName || !email || !password) {
             res.status(400).json({ message: "All fields are required" });
         }
-        const name = fullName.trim();
+        const normalizedFullName = fullName.trim();
         const normalizedEmail = email.trim().toLowerCase();
         if (password.length < 6) {
             res
@@ -20,13 +21,24 @@ export const signup = async (req, res) => {
         }
         const user = await User.findOne({ email });
         if (user) {
-            return res.status(400).json({ message: "Email already exists" });
+            return res.status(400).json({ message: "User already exists" });
         }
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        const newUser = new User({ fullName, email, password: hashedPassword });
+        const newUser = new User({
+            fullName: normalizedFullName,
+            email: normalizedEmail,
+            password: hashedPassword,
+        });
         if (newUser) {
             const savedUser = await newUser.save();
+            if (savedUser) {
+                sendWelcomeEmail({
+                    receiverName: newUser.fullName,
+                    recieverEmail: newUser.email,
+                    clientURL: "localhost:3000",
+                });
+            }
             generateToken(savedUser._id, res);
             res.status(201).json({
                 _id: newUser._id,
@@ -44,10 +56,35 @@ export const signup = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-export const login = (req, res) => {
-    res.send("You are in login page");
+export const login = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        if (!email || !password) {
+            res.status(400).json({ message: "All fields are required" });
+        }
+        const existingUser = await User.findOne({ email });
+        if (!existingUser) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+        const isPasswordCorrect = await bcrypt.compare(password, existingUser.password);
+        if (!isPasswordCorrect) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+        generateToken(existingUser._id, res);
+        res.status(200).json({
+            _id: existingUser._id,
+            name: existingUser.fullName,
+            email: existingUser.email,
+            profilePic: existingUser.profilePic,
+        });
+    }
+    catch (error) {
+        console.error("Error in login controller: ", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
-export const logout = (req, res) => {
-    res.send("You are in logout page");
+export const logout = (_, res) => {
+    res.cookie("jwt", "", { maxAge: 0 });
+    res.status(200).json({ message: "Logout Successful" });
 };
 //# sourceMappingURL=auth.controllers.js.map
