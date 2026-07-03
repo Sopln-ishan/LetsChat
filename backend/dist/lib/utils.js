@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
+import { jwtKey } from "./ENV.js";
 export const generateToken = (userId, res) => {
-    const secretKey = process.env.JWT_SECRET_KEY;
-    if (secretKey) {
+    try {
+        const secretKey = jwtKey();
         const token = jwt.sign({ userId }, secretKey, {
             expiresIn: "7d",
         });
@@ -13,8 +14,8 @@ export const generateToken = (userId, res) => {
         });
         return token;
     }
-    else {
-        throw new Error("Error in jwt key");
+    catch (error) {
+        console.error("Error in generate token lib: ", error);
     }
 };
 //# sourceMappingURL=utils.js.map
