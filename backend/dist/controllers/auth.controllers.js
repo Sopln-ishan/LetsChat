@@ -2,6 +2,8 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
+import { cloudinaryConfig } from "../lib/cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
     try {
@@ -86,5 +88,24 @@ export const login = async (req, res) => {
 export const logout = (_, res) => {
     res.cookie("jwt", "", { maxAge: 0 });
     res.status(200).json({ message: "Logout Successful" });
+};
+export const updateUser = async (req, res) => {
+    const { profilePic } = req.body;
+    if (!profilePic) {
+        return res
+            .status(400)
+            .json({ message: "No profile pic found, setting to default image" });
+    }
+    try {
+        const userId = req.user?._id;
+        cloudinaryConfig();
+        const uploadResult = await cloudinary.uploader.upload(profilePic);
+        const user = User.findByIdAndUpdate(userId, { profilePic: uploadResult.secure_url }, { new: true }).select("-password");
+        res.status(200).json(user);
+    }
+    catch (error) {
+        console.error("Error in updateUser controller: ", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
 //# sourceMappingURL=auth.controllers.js.map

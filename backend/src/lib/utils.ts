@@ -1,10 +1,12 @@
 import type { Response } from "express";
 import jwt from "jsonwebtoken";
 import type { Types } from "mongoose";
+import { jwtKey } from "./ENV.js";
 
 export const generateToken = (userId: Types.ObjectId, res: Response) => {
-  const secretKey: string | undefined = process.env.JWT_SECRET_KEY;
-  if (secretKey) {
+  try {
+    const secretKey: string = jwtKey();
+
     const token = jwt.sign({ userId }, secretKey, {
       expiresIn: "7d",
     });
@@ -17,7 +19,7 @@ export const generateToken = (userId: Types.ObjectId, res: Response) => {
     });
 
     return token;
-  } else {
-    throw new Error("Error in jwt key");
+  } catch (error) {
+    console.error("Error in generate token lib: ", error);
   }
 };
