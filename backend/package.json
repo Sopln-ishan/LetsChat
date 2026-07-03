@@ -14,6 +14,8 @@
   "type": "module",
   "description": "Creating a backend for the chat app using express and socket.io",
   "dependencies": {
+    "@arcjet/inspect": "^1.5.0",
+    "@arcjet/node": "^1.5.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.10.0",
     "concurrently": "^10.0.3",

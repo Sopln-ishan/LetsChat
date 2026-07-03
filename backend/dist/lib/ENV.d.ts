@@ -5,4 +5,8 @@ export declare const cloudinaryKeys: () => {
     cloudApiSecret: string;
     cloudEnvVar: string;
 };
+export declare const arcjetKey: () => {
+    arcjetApiKey: string;
+    arcjetEnv: string;
+};
 //# sourceMappingURL=ENV.d.ts.map

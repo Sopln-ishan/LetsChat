@@ -17,4 +17,12 @@ export const cloudinaryKeys = () => {
     }
     return { cloudName, cloudApiKey, cloudApiSecret, cloudEnvVar };
 };
+export const arcjetKey = () => {
+    const arcjetApiKey = process.env.ARCJET_API_KEY;
+    const arcjetEnv = process.env.ARCJET_ENV;
+    if (!arcjetApiKey || !arcjetEnv) {
+        throw new Error("arcjet variables undefined");
+    }
+    return { arcjetApiKey, arcjetEnv };
+};
 //# sourceMappingURL=ENV.js.map
