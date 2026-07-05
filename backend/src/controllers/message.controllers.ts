@@ -70,11 +70,28 @@ export const getMessagesByUserId = async (req: Request, res: Response) => {
 };
 
 export const sendMessage = async (req: Request, res: Response) => {
-  const { text, image } = req.body;
-  const { id: receiverId } = req.params;
-  const senderId = req.user?._id;
-
   try {
+    const { text, image } = req.body;
+    const { id: receiverId } = req.params;
+    const senderId = req.user?._id;
+
+    if (!text && !image) {
+      return res
+        .status(400)
+        .json({ message: "Atleast a text or an image is required" });
+    }
+
+    if (senderId == receiverId) {
+      return res
+        .status(400)
+        .json({ message: "Cannot send messages to yourself" });
+    }
+
+    const receiverExists = await User.findById(receiverId);
+    if (!receiverExists) {
+      return res.status(404).json({ message: "Receiver not found" });
+    }
+
     let imageUrl = "";
     if (image) {
       const uploadResult = await cloudinary.uploader.upload(image);
