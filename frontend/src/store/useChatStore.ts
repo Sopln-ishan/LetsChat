@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/Axios";
 import toast from "react-hot-toast";
 import type { AxiosError } from "axios";
+import useAuthStore from "./useAuthStore";
 
 interface Contact {
   _id: string;
@@ -19,6 +20,11 @@ interface Messages {
   createdAt?: string;
 }
 
+interface MessageData {
+  text?: string;
+  image?: string;
+}
+
 interface ChatStore {
   allContacts: Contact[];
   allChats: Contact[];
@@ -34,9 +40,10 @@ interface ChatStore {
   setActiveTab: (tab: "chats" | "contacts") => void;
   setActiveChat: (chat: Contact) => void;
   getMessagesByUserId: (userId: string) => Promise<void>;
+  sendMessage: (messageData: MessageData) => Promise<void>;
 }
 
-const useChatStore = create<ChatStore>((set) => ({
+const useChatStore = create<ChatStore>((set, get) => ({
   allContacts: [],
   allChats: [],
   activeTab: "chats",
@@ -93,6 +100,39 @@ const useChatStore = create<ChatStore>((set) => ({
       toast.error(message);
     } finally {
       set({ isFetchingMessages: false });
+    }
+  },
+
+  sendMessage: async (messageData: MessageData) => {
+    const { activeChat, chatMessages } = get();
+    const { authUser } = useAuthStore.getState();
+
+    try {
+      //optimistic message - goes even before it is put into the backend
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMessage = {
+        _id: tempId,
+        senderId: authUser._id,
+        receiverId: activeChat._id,
+        text: messageData.text,
+        image: messageData.image,
+        createdAt: new Date().toISOString(),
+      };
+
+      set({ chatMessages: [...chatMessages, optimisticMessage] });
+
+      const res = await axiosInstance.post(
+        `/messages/send/${activeChat._id}`,
+        messageData,
+      );
+      set({ chatMessages: [...chatMessages, res.data] });
+    } catch (error) {
+      // remove optimistic message on failure
+      set({ chatMessages });
+      const axiosError = error as AxiosError<{ message: string }>;
+      const message =
+        axiosError.response?.data?.message || "Failed to send message";
+      toast.error(message);
     }
   },
 }));

@@ -1,6 +1,8 @@
 import { Messages } from "../models/Messages.js";
 import User from "../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
+import { cloudinaryConfig } from "../lib/cloudinary.js";
+cloudinaryConfig();
 export const getAllContacts = async (req, res) => {
     try {
         const userId = req.user?._id;

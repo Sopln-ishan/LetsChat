@@ -2,6 +2,9 @@ import type { Request, Response } from "express";
 import { Messages } from "../models/Messages.js";
 import User from "../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
+import { cloudinaryConfig } from "../lib/cloudinary.js";
+
+cloudinaryConfig();
 
 export const getAllContacts = async (req: Request, res: Response) => {
   try {

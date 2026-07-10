@@ -44,112 +44,114 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="z-10 w-full max-w-md">
-      {/* Card */}
-      <div className="bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl shadow-black/20">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Welcome Back
-          </h1>
-          <p className="text-slate-400 mt-2 text-sm">
-            Log in to continue chatting
+    <div className="z-10 flex-1 flex justify-center items-center w-full px-4">
+      <div className="w-full max-w-md">
+        {/* Card */}
+        <div className="bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl shadow-black/20">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white tracking-tight">
+              Welcome Back
+            </h1>
+            <p className="text-slate-400 mt-2 text-sm">
+              Log in to continue chatting
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-300 pl-1">
+                Email
+              </label>
+              <div className="relative">
+                <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 size-4" />
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className={`w-full bg-slate-900/60 border rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-500 text-sm
+                    focus:outline-none focus:ring-2 transition-all duration-200
+                    ${errors.email ? "border-red-500/50 focus:ring-red-500/40 focus:border-red-500/50" : "border-slate-600/50 focus:ring-cyan-500/40 focus:border-cyan-500/50"}`}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-xs text-red-400 pl-1">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-300 pl-1">
+                Password
+              </label>
+              <div className="relative">
+                <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 size-4" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className={`w-full bg-slate-900/60 border rounded-xl py-3 pl-11 pr-11 text-white placeholder-slate-500 text-sm
+                    focus:outline-none focus:ring-2 transition-all duration-200
+                    ${errors.password ? "border-red-500/50 focus:ring-red-500/40 focus:border-red-500/50" : "border-slate-600/50 focus:ring-cyan-500/40 focus:border-cyan-500/50"}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                >
+                  {showPassword ? (
+                    <FiEyeOff className="size-4" />
+                  ) : (
+                    <FiEye className="size-4" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-xs text-red-400 pl-1">{errors.password}</p>
+              )}
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full bg-linear-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400
+                text-white font-semibold py-3 rounded-xl
+                transition-all duration-200
+                disabled:opacity-50 disabled:cursor-not-allowed
+                shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30
+                cursor-pointer"
+            >
+              {isLoggingIn ? (
+                <span className="flex items-center justify-center gap-2">
+                  <ImSpinner8 className="animate-spin size-4" />
+                  Logging in...
+                </span>
+              ) : (
+                "Log In"
+              )}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <p className="text-center text-sm text-slate-400 mt-6">
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
+            >
+              Sign up
+            </Link>
           </p>
         </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-300 pl-1">
-              Email
-            </label>
-            <div className="relative">
-              <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 size-4" />
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className={`w-full bg-slate-900/60 border rounded-xl py-3 pl-11 pr-4 text-white placeholder-slate-500 text-sm
-                  focus:outline-none focus:ring-2 transition-all duration-200
-                  ${errors.email ? "border-red-500/50 focus:ring-red-500/40 focus:border-red-500/50" : "border-slate-600/50 focus:ring-cyan-500/40 focus:border-cyan-500/50"}`}
-              />
-            </div>
-            {errors.email && (
-              <p className="text-xs text-red-400 pl-1">{errors.email}</p>
-            )}
-          </div>
-
-          {/* Password */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-300 pl-1">
-              Password
-            </label>
-            <div className="relative">
-              <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 size-4" />
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                className={`w-full bg-slate-900/60 border rounded-xl py-3 pl-11 pr-11 text-white placeholder-slate-500 text-sm
-                  focus:outline-none focus:ring-2 transition-all duration-200
-                  ${errors.password ? "border-red-500/50 focus:ring-red-500/40 focus:border-red-500/50" : "border-slate-600/50 focus:ring-cyan-500/40 focus:border-cyan-500/50"}`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
-              >
-                {showPassword ? (
-                  <FiEyeOff className="size-4" />
-                ) : (
-                  <FiEye className="size-4" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-xs text-red-400 pl-1">{errors.password}</p>
-            )}
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isLoggingIn}
-            className="w-full bg-linear-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400
-              text-white font-semibold py-3 rounded-xl
-              transition-all duration-200
-              disabled:opacity-50 disabled:cursor-not-allowed
-              shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30
-              cursor-pointer"
-          >
-            {isLoggingIn ? (
-              <span className="flex items-center justify-center gap-2">
-                <ImSpinner8 className="animate-spin size-4" />
-                Logging in...
-              </span>
-            ) : (
-              "Log In"
-            )}
-          </button>
-        </form>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-slate-400 mt-6">
-          Don't have an account?{" "}
-          <Link
-            to="/signup"
-            className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
-          >
-            Sign up
-          </Link>
-        </p>
       </div>
     </div>
   );

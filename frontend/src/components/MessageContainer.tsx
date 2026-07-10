@@ -3,6 +3,14 @@ import useChatStore from "../store/useChatStore";
 import useAuthStore from "../store/useAuthStore";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
 
+const formatMessageTime = (dateString: string) => {
+  if (!dateString) return "";
+  return new Date(dateString).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 const MessageContainer = () => {
   const { activeChat, isFetchingMessages, chatMessages, getMessagesByUserId } =
     useChatStore();
@@ -48,10 +56,13 @@ const MessageContainer = () => {
               </div>
             </div>
 
-            <div className="message-header-section chat-header mb-1 text-slate-400 text-xs">
-              <span className="mr-1">
+            <div className="message-header-section chat-header mb-1 text-slate-400 text-xs flex items-center gap-1.5">
+              <span className="font-medium">
                 {isSentByMe ? "You" : activeChat?.fullName}
               </span>
+              <time className="text-[10px] opacity-60">
+                {formatMessageTime(message.createdAt)}
+              </time>
             </div>
 
             <div
