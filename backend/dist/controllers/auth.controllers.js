@@ -75,7 +75,7 @@ export const login = async (req, res) => {
         generateToken(existingUser._id, res);
         res.status(200).json({
             _id: existingUser._id,
-            name: existingUser.fullName,
+            fullName: existingUser.fullName,
             email: existingUser.email,
             profilePic: existingUser.profilePic,
         });
@@ -90,17 +90,17 @@ export const logout = (_, res) => {
     res.status(200).json({ message: "Logout Successful" });
 };
 export const updateUser = async (req, res) => {
-    const { profilePic } = req.body;
-    if (!profilePic) {
-        return res
-            .status(400)
-            .json({ message: "No profile pic found, setting to default image" });
-    }
     try {
+        const { profilePic } = req.body;
+        if (!profilePic) {
+            return res
+                .status(400)
+                .json({ message: "No profile pic found, setting to default image" });
+        }
         const userId = req.user?._id;
         cloudinaryConfig();
         const uploadResult = await cloudinary.uploader.upload(profilePic);
-        const user = User.findByIdAndUpdate(userId, { profilePic: uploadResult.secure_url }, { new: true }).select("-password");
+        const user = await User.findByIdAndUpdate(userId, { profilePic: uploadResult.secure_url }, { new: true }).select("-password");
         res.status(200).json(user);
     }
     catch (error) {

@@ -15,7 +15,7 @@ const app: Express = express();
 const PORT: string | 3000 = process.env.PORT || 3000;
 const CLIENT_URL: string = process.env.CLIENT_URL || "http://localhost:5173";
 
-app.use(express.json()); // This will help us access the fields that the user will send through the forms
+app.use(express.json({ limit: "10mb" })); // This will help us access the fields that the user will send through the forms
 app.use(cookieParser()); // This will allow us to access the cookies from the response section
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
 

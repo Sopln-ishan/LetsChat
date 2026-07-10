@@ -14,8 +14,15 @@ interface LoginData {
   password: string;
 }
 
+interface AuthUser {
+  _id: string;
+  fullName: string;
+  email: string;
+  profilePic?: string;
+}
+
 interface AuthStore {
-  authUser: Record<string, unknown> | null;
+  authUser: AuthUser | null;
   isCheckingAuth: boolean;
   isSigningUp: boolean;
   isLoggingIn: boolean;
@@ -23,6 +30,7 @@ interface AuthStore {
   signup: (data: SignUpData) => Promise<void>;
   login: (data: LoginData) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (data: string) => Promise<void>;
 }
 
 const useAuthStore = create<AuthStore>((set) => ({
@@ -82,6 +90,21 @@ const useAuthStore = create<AuthStore>((set) => ({
       const axiosError = error as AxiosError<{ message: string }>;
       const message = axiosError.response?.data?.message || "Logout failed";
       toast.error(`Error loggin out: ${message}`);
+    }
+  },
+
+  updateProfile: async (data: string) => {
+    try {
+      const res = await axiosInstance.put("/auth/update-user", {
+        profilePic: data,
+      });
+      set({ authUser: res.data });
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const message =
+        axiosError.response?.data?.message || "Update profile failed";
+      toast.error(message);
     }
   },
 }));
