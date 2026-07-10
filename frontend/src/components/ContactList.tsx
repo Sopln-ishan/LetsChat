@@ -24,10 +24,10 @@ const ContactList = () => {
       {allContacts.map((contact) => (
         <button
           key={contact._id}
-          onClick={() => setActiveChat(contact._id)}
+          onClick={() => setActiveChat(contact)}
           className={`flex items-center gap-3 w-full px-3 py-3 rounded-xl transition-all duration-200 cursor-pointer
             ${
-              activeChat === contact._id
+              activeChat === contact
                 ? "bg-emerald-500/15 border border-emerald-500/20"
                 : "bg-slate-700/20 hover:bg-slate-700/40 border border-transparent"
             }`}

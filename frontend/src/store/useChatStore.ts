@@ -10,18 +10,30 @@ interface Contact {
   profilePic?: string;
 }
 
+interface Messages {
+  _id: string;
+  senderId: string;
+  receiverId: string;
+  text?: string;
+  image?: string;
+  createdAt?: string;
+}
+
 interface ChatStore {
   allContacts: Contact[];
   allChats: Contact[];
   activeTab: "chats" | "contacts";
-  activeChat: string;
+  activeChat: Contact;
+  chatMessages: Messages[];
   isFetchingChatPartners: boolean;
   isFetchingContacts: boolean;
+  isFetchingMessages: boolean;
 
   getChatPartners: () => Promise<void>;
   getContacts: () => Promise<void>;
   setActiveTab: (tab: "chats" | "contacts") => void;
-  setActiveChat: (chat: string) => void;
+  setActiveChat: (chat: Contact) => void;
+  getMessagesByUserId: (userId: string) => Promise<void>;
 }
 
 const useChatStore = create<ChatStore>((set) => ({
@@ -29,8 +41,10 @@ const useChatStore = create<ChatStore>((set) => ({
   allChats: [],
   activeTab: "chats",
   activeChat: null,
+  chatMessages: [],
   isFetchingChatPartners: false,
   isFetchingContacts: false,
+  isFetchingMessages: false,
 
   getChatPartners: async () => {
     try {
@@ -63,8 +77,23 @@ const useChatStore = create<ChatStore>((set) => ({
   setActiveTab: (tab: "chats" | "contacts") => {
     set({ activeTab: tab });
   },
-  setActiveChat: (chat: string) => {
+  setActiveChat: (chat: Contact) => {
     set({ activeChat: chat });
+  },
+
+  getMessagesByUserId: async (userId: string) => {
+    try {
+      set({ isFetchingMessages: true });
+      const res = await axiosInstance.get(`/messages/${userId}`);
+      set({ chatMessages: res.data });
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const message =
+        axiosError.response?.data?.message || "Failed to fetch messages";
+      toast.error(message);
+    } finally {
+      set({ isFetchingMessages: false });
+    }
   },
 }));
 

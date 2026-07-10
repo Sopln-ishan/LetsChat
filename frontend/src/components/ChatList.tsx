@@ -33,7 +33,7 @@ const ChatList = () => {
         allChats.map((contact) => (
           <button
             key={contact._id}
-            onClick={() => setActiveChat(contact._id)}
+            onClick={() => setActiveChat(contact)}
             className={`flex items-center gap-3 w-full px-3 py-3 rounded-xl transition-all duration-200 cursor-pointer
               ${
                 (activeChat as any)?._id === contact._id

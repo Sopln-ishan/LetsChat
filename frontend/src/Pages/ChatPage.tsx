@@ -2,6 +2,7 @@ import ActiveTab from "../components/ActiveTab";
 import ChatContainer from "../components/ChatContainer";
 import ChatList from "../components/ChatList";
 import ContactList from "../components/ContactList";
+import NoConversationPlaceholder from "../components/NoConversationPlaceholder";
 import ProfileHeader from "../components/ProfileHeader";
 import useChatStore from "../store/useChatStore";
 
@@ -11,7 +12,7 @@ const ChatPage = () => {
   return (
     <div className="z-10 flex h-screen w-full">
       {/* Sidebar / contact-list panel */}
-      <aside className="flex w-full max-w-sm flex-col bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/20 overflow-hidden">
+      <aside className="flex w-full max-w-sm flex-col bg-slate-800/60 backdrop-blur-xl border-r border-slate-700/50 overflow-hidden">
         {/* Profile header */}
         <header className="flex items-center gap-3 px-5 py-4 border-b border-slate-700/50">
           <ProfileHeader />
@@ -34,19 +35,8 @@ const ChatPage = () => {
 
       {/* Main chat area (placeholder for future conversation view) */}
       <main className="hidden lg:flex flex-1 items-center justify-center">
-        <div className="text-center text-slate-500 select-none">
-          {activeChat ? (
-            <ChatContainer />
-          ) : (
-            <>
-              <p className="text-lg font-medium">Select a conversation</p>
-              <p className="text-sm mt-1">
-                Choose a chat from the sidebar to start messaging
-              </p>
-            </>
-
-            // <NoConversationPlaceholder />
-          )}
+        <div className="w-full h-full">
+          {activeChat ? <ChatContainer /> : <NoConversationPlaceholder />}
         </div>
       </main>
     </div>
