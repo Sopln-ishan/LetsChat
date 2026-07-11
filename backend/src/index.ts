@@ -3,15 +3,13 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-import type { Express } from "express";
-
 import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import connectDB from "./lib/db.js";
+import { app, server } from "./lib/socket.js";
 
 dotenv.config();
 
-const app: Express = express();
 const PORT: string | 3000 = process.env.PORT || 3000;
 const CLIENT_URL: string = process.env.CLIENT_URL || "http://localhost:5173";
 
@@ -22,7 +20,7 @@ app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use("/api/auth/", authRoutes);
 app.use("/api/messages/", messageRoutes);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   connectDB();
   console.log(`server started on http://localhost:${PORT}`);
 });

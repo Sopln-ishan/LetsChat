@@ -5,8 +5,8 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import connectDB from "./lib/db.js";
+import { app, server } from "./lib/socket.js";
 dotenv.config();
-const app = express();
 const PORT = process.env.PORT || 3000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 app.use(express.json({ limit: "10mb" })); // This will help us access the fields that the user will send through the forms
@@ -14,7 +14,7 @@ app.use(cookieParser()); // This will allow us to access the cookies from the re
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use("/api/auth/", authRoutes);
 app.use("/api/messages/", messageRoutes);
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     connectDB();
     console.log(`server started on http://localhost:${PORT}`);
 });

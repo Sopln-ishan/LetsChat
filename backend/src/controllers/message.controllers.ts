@@ -3,6 +3,7 @@ import { Messages } from "../models/Messages.js";
 import User from "../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
 import { cloudinaryConfig } from "../lib/cloudinary.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
 
 cloudinaryConfig();
 
@@ -102,13 +103,17 @@ export const sendMessage = async (req: Request, res: Response) => {
     }
 
     const newMessage = new Messages({
-      senderId: senderId,
-      receiverId: receiverId,
-      text: text,
+      senderId,
+      receiverId,
+      text,
       image: imageUrl,
     });
 
     //todo: send message in real-time if user is online using socket.io
+    const receiverSocketId = getReceiverSocketId(receiverId as string);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
 
     await newMessage.save();
     res.status(201).json(newMessage);
