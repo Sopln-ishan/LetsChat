@@ -41,6 +41,8 @@ interface ChatStore {
   setActiveChat: (chat: Contact) => void;
   getMessagesByUserId: (userId: string) => Promise<void>;
   sendMessage: (messageData: MessageData) => Promise<void>;
+  subscribeToMessages: () => void;
+  unsubscribeFromMessages: () => void;
 }
 
 const useChatStore = create<ChatStore>((set, get) => ({
@@ -134,6 +136,30 @@ const useChatStore = create<ChatStore>((set, get) => ({
         axiosError.response?.data?.message || "Failed to send message";
       toast.error(message);
     }
+  },
+
+  subscribeToMessages: () => {
+    const { activeChat } = get();
+    const { socket } = useAuthStore.getState();
+
+    if (!activeChat) {
+      return;
+    }
+
+    socket.on("newMessage", (newMessage) => {
+      const isReceivedFromActiveChat = newMessage.senderId === activeChat._id;
+      if (!isReceivedFromActiveChat) {
+        return;
+      }
+
+      const currentMessages = get().chatMessages;
+      set({ chatMessages: [...currentMessages, newMessage] });
+    });
+  },
+
+  unsubscribeFromMessages: () => {
+    const { socket } = useAuthStore.getState();
+    socket.off("newMessage");
   },
 }));
 

@@ -1,15 +1,19 @@
 import { IoClose } from "react-icons/io5";
 import useChatStore from "../store/useChatStore";
+import useAuthStore from "../store/useAuthStore";
 
 const ChatHeader = () => {
   const { activeChat, setActiveChat } = useChatStore();
+  const { onlineUsers } = useAuthStore();
 
   return (
     <div className="chat-header flex items-center justify-between w-full px-5 py-4 border-b border-slate-700/50 bg-slate-800/60 backdrop-blur-xl">
       {/* Left side — avatar + user info */}
       <div className="chat-header-user flex items-center gap-3">
         {/* Avatar */}
-        <div className="chat-header-avatar avatar avatar-online">
+        <div
+          className={`chat-header-avatar avatar avatar-${Object.keys(onlineUsers).includes(activeChat._id) ? "online" : ""}`}
+        >
           <div className="w-10 rounded-full">
             <img
               src={activeChat?.profilePic || "/defaultAvatar.webp"}
@@ -25,7 +29,9 @@ const ChatHeader = () => {
             {activeChat?.fullName}
           </h3>
           <p className="chat-header-status text-xs text-emerald-400 truncate">
-            Online
+            {Object.keys(onlineUsers).includes(activeChat._id)
+              ? "Online"
+              : "Offline"}
           </p>
         </div>
       </div>

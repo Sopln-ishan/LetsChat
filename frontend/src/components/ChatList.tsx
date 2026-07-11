@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import useChatStore from "../store/useChatStore";
 import UsersLoadingSkeleton from "./UsersLoadingSkeleton";
 import NoChatsFound from "./NoChatsFound";
+import useAuthStore from "../store/useAuthStore";
 
 const ChatList = () => {
   const {
@@ -11,6 +12,8 @@ const ChatList = () => {
     activeChat,
     getChatPartners,
   } = useChatStore();
+
+  const { onlineUsers } = useAuthStore();
 
   useEffect(() => {
     getChatPartners();
@@ -42,7 +45,9 @@ const ChatList = () => {
               }`}
           >
             {/* Avatar */}
-            <div className="avatar avatar-online shrink-0">
+            <div
+              className={`avatar shrink-0 avatar-${Object.keys(onlineUsers).includes(contact._id) ? "online" : ""}`}
+            >
               <div className="w-10 rounded-full">
                 <img
                   src={contact.profilePic || "/defaultAvatar.webp"}
