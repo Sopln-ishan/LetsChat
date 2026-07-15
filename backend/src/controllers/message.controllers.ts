@@ -52,6 +52,7 @@ export const getAllChatPartners = async (req: Request, res: Response) => {
 export const getMessagesByUserId = async (req: Request, res: Response) => {
   const userId = req.user?._id;
   const { id: chatPartnerId } = req.params;
+  const cursor = req.query.cursor as string;
 
   if (!userId) {
     console.error("No userId found");
@@ -59,14 +60,20 @@ export const getMessagesByUserId = async (req: Request, res: Response) => {
   }
 
   try {
-    const theirChats = await Messages.find({
+    const query: any = {
       $or: [
         { senderId: userId, receiverId: chatPartnerId },
         { senderId: chatPartnerId, receiverId: userId },
       ],
-    });
+    };
 
-    return res.status(200).json(theirChats);
+    if (cursor) {
+      query._id = { $lt: cursor };
+    }
+
+    const theirChats = await Messages.find(query).sort({ _id: -1 }).limit(30);
+
+    return res.status(200).json(theirChats.reverse());
   } catch (error) {
     console.error("Error in getting messages between users: ", error);
     res.status(500).json({ message: "Internal server error" });

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import useChatStore from "../store/useChatStore";
 import useAuthStore from "../store/useAuthStore";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
@@ -19,9 +19,42 @@ const MessageContainer = () => {
     getMessagesByUserId,
     subscribeToMessages,
     unsubscribeFromMessages,
+    fetchMoreMessagesIfAvailable,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const messageStartRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const firstMessageIdRef = useRef<string | null>(null);
+  const lastMessageIdRef = useRef<string | null>(null);
+  const previousScrollHeightRef = useRef<number>(0);
+
+  // implementing cursor based pagination
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          const cursor = chatMessages.length > 0 ? chatMessages[0]._id : null;
+
+          if (cursor) {
+            fetchMoreMessagesIfAvailable(cursor);
+          }
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (messageStartRef.current) {
+      observer.observe(messageStartRef.current);
+    }
+
+    return () => {
+      if (messageStartRef.current) {
+        observer.unobserve(messageStartRef.current);
+      }
+    };
+  }, [chatMessages, fetchMoreMessagesIfAvailable]);
 
   useEffect(() => {
     getMessagesByUserId(activeChat?._id);
@@ -35,10 +68,27 @@ const MessageContainer = () => {
     unsubscribeFromMessages,
   ]);
 
-  useEffect(() => {
-    if (messageEndRef.current && chatMessages) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || chatMessages.length === 0) return;
+
+    const currentFirstMessageId = chatMessages[0]._id;
+    const currentLastMessageId = chatMessages[chatMessages.length - 1]._id;
+
+    // 1. Check if we just loaded older messages (prepended)
+    if (firstMessageIdRef.current && firstMessageIdRef.current !== currentFirstMessageId) {
+      const heightDifference = container.scrollHeight - previousScrollHeightRef.current;
+      container.scrollTop += heightDifference;
+    } 
+    // 2. Check if a new message arrived or it's the initial load
+    else if (lastMessageIdRef.current !== currentLastMessageId) {
+      messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
+
+    // Update refs for next cycle
+    firstMessageIdRef.current = currentFirstMessageId;
+    lastMessageIdRef.current = currentLastMessageId;
+    previousScrollHeightRef.current = container.scrollHeight;
   }, [chatMessages]);
 
   if (isFetchingMessages) {
@@ -46,9 +96,14 @@ const MessageContainer = () => {
   }
 
   return (
-    <div className="message-list-container flex-1 overflow-y-auto px-5 py-4 flex flex-col scrollbar-thin scrollbar-thumb-slate-700">
+    <div 
+      ref={scrollContainerRef}
+      className="message-list-container flex-1 overflow-y-auto px-5 py-4 flex flex-col scrollbar-thin scrollbar-thumb-slate-700"
+    >
       {/* Spacer pushes messages to the bottom when there are few */}
       <div className="flex-1" />
+
+      <div ref={messageStartRef} />
 
       <div className="space-y-4">
         {chatMessages.map((message) => {

@@ -41,18 +41,23 @@ export const getAllChatPartners = async (req, res) => {
 export const getMessagesByUserId = async (req, res) => {
     const userId = req.user?._id;
     const { id: chatPartnerId } = req.params;
+    const cursor = req.query.cursor;
     if (!userId) {
         console.error("No userId found");
         return res.status(401).json({ message: "Unauthorized" });
     }
     try {
-        const theirChats = await Messages.find({
+        const query = {
             $or: [
                 { senderId: userId, receiverId: chatPartnerId },
                 { senderId: chatPartnerId, receiverId: userId },
             ],
-        });
-        return res.status(200).json(theirChats);
+        };
+        if (cursor) {
+            query._id = { $lt: cursor };
+        }
+        const theirChats = await Messages.find(query).sort({ _id: -1 }).limit(30);
+        return res.status(200).json(theirChats.reverse());
     }
     catch (error) {
         console.error("Error in getting messages between users: ", error);

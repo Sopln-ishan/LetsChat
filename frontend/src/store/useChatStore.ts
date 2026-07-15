@@ -43,6 +43,7 @@ interface ChatStore {
   sendMessage: (messageData: MessageData) => Promise<void>;
   subscribeToMessages: () => void;
   unsubscribeFromMessages: () => void;
+  fetchMoreMessagesIfAvailable: (cursor: string) => Promise<void>;
 }
 
 const useChatStore = create<ChatStore>((set, get) => ({
@@ -160,6 +161,24 @@ const useChatStore = create<ChatStore>((set, get) => ({
   unsubscribeFromMessages: () => {
     const { socket } = useAuthStore.getState();
     socket.off("newMessage");
+  },
+
+  fetchMoreMessagesIfAvailable: async (cursor) => {
+    const { activeChat, chatMessages } = get();
+    if (!activeChat) return;
+
+    try {
+      const res = await axiosInstance.get(`/messages/${activeChat._id}?cursor=${cursor}`);
+      
+      // If we got messages, prepend them to the existing messages
+      if (res.data && res.data.length > 0) {
+        set({ chatMessages: [...res.data, ...chatMessages] });
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const message = axiosError.response?.data?.message || "Failed to fetch older messages";
+      toast.error(message);
+    }
   },
 }));
 
