@@ -95,7 +95,7 @@ export const sendMessage = async (req, res) => {
             image: imageUrl,
         });
         //todo: send message in real-time if user is online using socket.io
-        const receiverSocketId = getReceiverSocketId(receiverId);
+        const receiverSocketId = await getReceiverSocketId(receiverId);
         if (receiverSocketId) {
             io.to(receiverSocketId).emit("newMessage", newMessage);
         }

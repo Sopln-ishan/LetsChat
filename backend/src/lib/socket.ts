@@ -2,6 +2,11 @@ import { Server } from "socket.io";
 import express from "express";
 import http from "http";
 import { socketAuthMiddleware } from "../middleware/socket.auth.middleware.js";
+import { createClient } from "redis";
+import { createAdapter } from "@socket.io/redis-adapter";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
@@ -16,31 +21,51 @@ const io = new Server(server, {
 // apply authentication middleware to all socket connections
 io.use(socketAuthMiddleware);
 
-const userSocketMap: Record<string, string> = {};
+export const redisClient = createClient({ url: process.env.REDIS_URI || "redis://localhost:6379" });
+redisClient.on("error", (err) => console.error("Redis Client Error", err));
 
-export const getReceiverSocketId = (userId: string) => {
-  return userSocketMap[userId];
+const pubClient = redisClient.duplicate();
+const subClient = redisClient.duplicate();
+
+Promise.all([redisClient.connect(), pubClient.connect(), subClient.connect()]).then(() => {
+  console.log("Redis connected and Socket.IO adapter set");
+  io.adapter(createAdapter(pubClient, subClient));
+}).catch((err) => {
+  console.error("Redis connection error:", err);
+});
+
+export const getReceiverSocketId = async (userId: string) => {
+  return await redisClient.hGet("userSocketMap", userId);
 };
 
-io.on("connection", (socket) => {
+const broadcastOnlineUsers = async () => {
+  try {
+    const users = await redisClient.hGetAll("userSocketMap");
+    io.emit("getOnlineUsers", users);
+  } catch (err) {
+    console.error("Error broadcasting online users", err);
+  }
+};
+
+io.on("connection", async (socket) => {
   const userId = socket.userId;
   const connectedUser = socket.user?.fullName;
   console.log("Connected user: ", connectedUser);
 
   if (userId) {
-    userSocketMap[userId] = socket.id;
+    await redisClient.hSet("userSocketMap", userId, socket.id);
   }
 
   // sends message to all the connected users
-  io.emit("getOnlineUsers", userSocketMap);
+  await broadcastOnlineUsers();
 
   // with socket.on we are listening foe events from the frontend
-  socket.on("disconnect", () => {
-    console.log("A user disconnected: ", socket.user.fullName);
+  socket.on("disconnect", async () => {
+    console.log("A user disconnected: ", socket.user?.fullName);
 
     if (userId) {
-      delete userSocketMap[userId];
-      io.emit("getOnlineUsers", userSocketMap);
+      await redisClient.hDel("userSocketMap", userId);
+      await broadcastOnlineUsers();
     }
   });
 });

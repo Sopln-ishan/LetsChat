@@ -117,7 +117,7 @@ export const sendMessage = async (req: Request, res: Response) => {
     });
 
     //todo: send message in real-time if user is online using socket.io
-    const receiverSocketId = getReceiverSocketId(receiverId as string);
+    const receiverSocketId = await getReceiverSocketId(receiverId as string);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
     }
