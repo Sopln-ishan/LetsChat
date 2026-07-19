@@ -39,7 +39,9 @@ interface AuthStore {
 }
 
 const BASE_URL: string =
-  import.meta.env.MODE === "development" ? "http://localhost:3000" : "/";
+  import.meta.env.MODE === "development"
+    ? "http://localhost:3000"
+    : import.meta.env.VITE_API_URL;
 
 const useAuthStore = create<AuthStore>((set, get) => ({
   authUser: null,
