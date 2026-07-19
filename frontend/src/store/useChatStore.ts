@@ -29,7 +29,7 @@ interface ChatStore {
   allContacts: Contact[];
   allChats: Contact[];
   activeTab: "chats" | "contacts";
-  activeChat: Contact;
+  activeChat: Contact | null;
   chatMessages: Messages[];
   isFetchingChatPartners: boolean;
   isFetchingContacts: boolean;
@@ -39,7 +39,7 @@ interface ChatStore {
   getContacts: () => Promise<void>;
   setActiveTab: (tab: "chats" | "contacts") => void;
   setActiveChat: (chat: Contact) => void;
-  getMessagesByUserId: (userId: string) => Promise<void>;
+  getMessagesByUserId: (userId: string | undefined) => Promise<void>;
   sendMessage: (messageData: MessageData) => Promise<void>;
   subscribeToMessages: () => void;
   unsubscribeFromMessages: () => void;
@@ -91,7 +91,8 @@ const useChatStore = create<ChatStore>((set, get) => ({
     set({ activeChat: chat });
   },
 
-  getMessagesByUserId: async (userId: string) => {
+  getMessagesByUserId: async (userId: string | undefined) => {
+    if (!userId) return;
     try {
       set({ isFetchingMessages: true });
       const res = await axiosInstance.get(`/messages/${userId}`);
@@ -111,6 +112,8 @@ const useChatStore = create<ChatStore>((set, get) => ({
     const { authUser } = useAuthStore.getState();
 
     try {
+      if (!authUser || !activeChat) return;
+
       //optimistic message - goes even before it is put into the backend
       const tempId = `temp-${Date.now()}`;
       const optimisticMessage = {
@@ -143,7 +146,7 @@ const useChatStore = create<ChatStore>((set, get) => ({
     const { activeChat } = get();
     const { socket } = useAuthStore.getState();
 
-    if (!activeChat) {
+    if (!activeChat || !socket) {
       return;
     }
 
@@ -160,7 +163,7 @@ const useChatStore = create<ChatStore>((set, get) => ({
 
   unsubscribeFromMessages: () => {
     const { socket } = useAuthStore.getState();
-    socket.off("newMessage");
+    socket?.off("newMessage");
   },
 
   fetchMoreMessagesIfAvailable: async (cursor) => {

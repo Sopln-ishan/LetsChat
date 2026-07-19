@@ -4,18 +4,18 @@ import useChatStore from "../store/useChatStore";
 
 const InputMessageField = () => {
   const [text, setText] = useState("");
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { sendMessage } = useChatStore();
-  const imageInputRef = useRef(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleImageSubmit = (e) => {
-    const image = e.target.files[0];
+  const handleImageSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const image = e.target.files?.[0];
     const reader = new FileReader();
 
     if (image) {
       reader.readAsDataURL(image);
-      reader.onloadend = () => setImagePreview(reader.result);
+      reader.onloadend = () => setImagePreview(reader.result as string);
     }
   };
 
@@ -28,7 +28,7 @@ const InputMessageField = () => {
     e.preventDefault();
     if (!text.trim() && !imagePreview) return;
 
-    await sendMessage({ text: text.trim(), image: imagePreview });
+    await sendMessage({ text: text.trim(), image: imagePreview ?? undefined });
     setText("");
     removeImagePreview();
     if (textareaRef.current) textareaRef.current.style.height = "auto";

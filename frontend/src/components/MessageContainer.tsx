@@ -134,7 +134,7 @@ const MessageContainer = () => {
                   {isSentByMe ? "You" : activeChat?.fullName}
                 </span>
                 <time className="text-[10px] opacity-60">
-                  {formatMessageTime(message.createdAt)}
+                  {formatMessageTime(message.createdAt ?? "")}
                 </time>
               </div>
 

@@ -27,7 +27,7 @@ interface AuthStore {
   isCheckingAuth: boolean;
   isSigningUp: boolean;
   isLoggingIn: boolean;
-  socket: Socket;
+  socket: Socket | null;
   onlineUsers: Record<string, string>;
   checkAuth: () => Promise<void>;
   signup: (data: SignUpData) => Promise<void>;

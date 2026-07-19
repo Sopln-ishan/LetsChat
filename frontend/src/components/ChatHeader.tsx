@@ -12,7 +12,7 @@ const ChatHeader = () => {
       <div className="chat-header-user flex items-center gap-3">
         {/* Avatar */}
         <div
-          className={`chat-header-avatar avatar avatar-${Object.keys(onlineUsers).includes(activeChat._id) ? "online" : ""}`}
+          className={`chat-header-avatar avatar avatar-${activeChat && Object.keys(onlineUsers).includes(activeChat._id) ? "online" : ""}`}
         >
           <div className="w-10 rounded-full">
             <img
@@ -29,7 +29,7 @@ const ChatHeader = () => {
             {activeChat?.fullName}
           </h3>
           <p className="chat-header-status text-xs text-emerald-400 truncate">
-            {Object.keys(onlineUsers).includes(activeChat._id)
+            {activeChat && Object.keys(onlineUsers).includes(activeChat._id)
               ? "Online"
               : "Offline"}
           </p>
