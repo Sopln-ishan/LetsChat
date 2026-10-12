@@ -3,19 +3,20 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 export const socketAuthMiddleware = async (socket, next) => {
     try {
-        const cookies = socket.handshake.headers.cookie;
-        if (!cookies) {
-            console.error("Socket connection rejected: No cookies sent");
-            return next(new Error("Unauthorized - No cookies sent"));
+        const cookieHeader = socket.handshake.headers.cookie;
+        let token;
+        if (cookieHeader) {
+            const cookies = cookieHeader.split(";").map((row) => row.trim());
+            const jwtCookie = cookies.find((row) => row.startsWith("jwt="));
+            if (jwtCookie) {
+                token = jwtCookie.split("=")[1];
+            }
         }
-        const jwtCookie = cookies.split("; ").find((row) => row.startsWith("jwt="));
-        if (!jwtCookie) {
-            console.error("Socket connection rejected: No token provided");
-            return next(new Error("Unauthorized - No token provided"));
+        if (!token && socket.handshake.auth?.token) {
+            token = socket.handshake.auth.token;
         }
-        const token = jwtCookie.split("=")[1];
         if (!token) {
-            console.error("Socket connection rejected: No token provided");
+            console.error("Socket connection rejected: No token provided in cookie or auth");
             return next(new Error("Unauthorized - No token provided"));
         }
         const decoded = jwt.verify(token, jwtKey());

@@ -26,26 +26,54 @@ const io = new Server(server, {
 // apply authentication middleware to all socket connections
 io.use(socketAuthMiddleware);
 
-export const redisClient = createClient({ url: process.env.REDIS_URI || "redis://localhost:6379" });
+// Local in-memory map as fallback if Redis is down or unavailable
+const localUserSocketMap = new Map<string, string>();
+
+export const redisClient = createClient({
+  url: process.env.REDIS_URI || "redis://localhost:6379",
+});
 redisClient.on("error", (err) => console.error("Redis Client Error", err));
 
 const pubClient = redisClient.duplicate();
 const subClient = redisClient.duplicate();
 
-Promise.all([redisClient.connect(), pubClient.connect(), subClient.connect()]).then(() => {
-  console.log("Redis connected and Socket.IO adapter set");
-  io.adapter(createAdapter(pubClient, subClient));
-}).catch((err) => {
-  console.error("Redis connection error:", err);
-});
+Promise.all([redisClient.connect(), pubClient.connect(), subClient.connect()])
+  .then(() => {
+    console.log("Redis connected and Socket.IO adapter set");
+    io.adapter(createAdapter(pubClient, subClient));
+  })
+  .catch((err) => {
+    console.warn("Redis connection warning (falling back to memory):", err.message);
+  });
 
-export const getReceiverSocketId = async (userId: string) => {
-  return await redisClient.hGet("userSocketMap", userId);
+export const getReceiverSocketId = async (userId: string): Promise<string | undefined> => {
+  try {
+    if (redisClient.isOpen) {
+      const socketId = await redisClient.hGet("userSocketMap", userId);
+      if (socketId) return socketId;
+    }
+  } catch (err) {
+    console.error("Redis hGet error:", err);
+  }
+  return localUserSocketMap.get(userId);
 };
 
 const broadcastOnlineUsers = async () => {
   try {
-    const users = await redisClient.hGetAll("userSocketMap");
+    const users: Record<string, string> = {};
+    localUserSocketMap.forEach((socketId, uId) => {
+      users[uId] = socketId;
+    });
+
+    if (redisClient.isOpen) {
+      try {
+        const redisUsers = await redisClient.hGetAll("userSocketMap");
+        Object.assign(users, redisUsers);
+      } catch (err) {
+        console.error("Redis hGetAll error:", err);
+      }
+    }
+
     io.emit("getOnlineUsers", users);
   } catch (err) {
     console.error("Error broadcasting online users", err);
@@ -58,7 +86,14 @@ io.on("connection", async (socket) => {
   console.log("Connected user: ", connectedUser);
 
   if (userId) {
-    await redisClient.hSet("userSocketMap", userId, socket.id);
+    localUserSocketMap.set(userId, socket.id);
+    if (redisClient.isOpen) {
+      try {
+        await redisClient.hSet("userSocketMap", userId, socket.id);
+      } catch (err) {
+        console.error("Redis hSet error:", err);
+      }
+    }
   }
 
   // sends message to all the connected users
@@ -69,7 +104,14 @@ io.on("connection", async (socket) => {
     console.log("A user disconnected: ", socket.user?.fullName);
 
     if (userId) {
-      await redisClient.hDel("userSocketMap", userId);
+      localUserSocketMap.delete(userId);
+      if (redisClient.isOpen) {
+        try {
+          await redisClient.hDel("userSocketMap", userId);
+        } catch (err) {
+          console.error("Redis hDel error:", err);
+        }
+      }
       await broadcastOnlineUsers();
     }
   });

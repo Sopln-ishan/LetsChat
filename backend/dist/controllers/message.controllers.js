@@ -94,13 +94,12 @@ export const sendMessage = async (req, res) => {
             text,
             image: imageUrl,
         });
-        //todo: send message in real-time if user is online using socket.io
+        const savedMessage = await newMessage.save();
         const receiverSocketId = await getReceiverSocketId(receiverId);
         if (receiverSocketId) {
-            io.to(receiverSocketId).emit("newMessage", newMessage);
+            io.to(receiverSocketId).emit("newMessage", savedMessage);
         }
-        await newMessage.save();
-        res.status(201).json(newMessage);
+        res.status(201).json(savedMessage);
     }
     catch (error) {
         console.error("Error in sending message: ", error);
