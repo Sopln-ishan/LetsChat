@@ -8,20 +8,20 @@ export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
     try {
         if (!fullName || !email || !password) {
-            res.status(400).json({ message: "All fields are required" });
+            return res.status(400).json({ message: "All fields are required" });
         }
         const normalizedFullName = fullName.trim();
         const normalizedEmail = email.trim().toLowerCase();
         if (password.length < 6) {
-            res
+            return res
                 .status(400)
                 .json({ message: "Password must be atleast 6 characters long" });
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            res.status(400).json({ message: "Invalid email format" });
+            return res.status(400).json({ message: "Invalid email format" });
         }
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: normalizedEmail });
         if (user) {
             return res.status(400).json({ message: "User already exists" });
         }

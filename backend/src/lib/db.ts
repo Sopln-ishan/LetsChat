@@ -10,7 +10,7 @@ const connectDB = async () => {
       throw new Error("mongodb connection string undefined");
     }
   } catch (error) {
-    console.error("Could not connect to DB");
+    console.error("Could not connect to DB:", error);
     process.exit(1); // 1 means failed, 0 means succeeded
   }
 };

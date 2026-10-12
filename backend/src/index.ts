@@ -11,11 +11,25 @@ import { app, server } from "./lib/socket.js";
 dotenv.config();
 
 const PORT: string | 3000 = process.env.PORT || 3000;
-const CLIENT_URL: string = process.env.CLIENT_URL || "http://localhost:5173";
+const allowedOrigins = [
+  "http://localhost:5173",
+  ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL.replace(/\/$/, "")] : []),
+];
 
 app.use(express.json({ limit: "10mb" })); // This will help us access the fields that the user will send through the forms
 app.use(cookieParser()); // This will allow us to access the cookies from the response section
-app.use(cors({ origin: CLIENT_URL, credentials: true }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Not allowed by CORS: ${origin}`));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use("/api/auth/", authRoutes);
 app.use("/api/messages/", messageRoutes);
